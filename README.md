@@ -46,12 +46,12 @@ async function main() {
 
   const camera_processor = new CameraProcessor();
   camera_processor.setCameraStream(camera_stream);
+  camera_processor.start(); // You have to explicitly start it
 
   // Add some analyzer (the first argument is the name and it's very important)
   const some_analyzer = camera_processor.addAnalyzer('some_analyzer', new SomeAnalyzer());
   // Add some renderer that might or might not use data from the analyzers
   const some_renderer = camera_processor.addRenderer(new SomeRenderer());
-  camera_processor.start(); // You have to explicitly start it
 
   video.srcObject = camera_processor.getOutputStream(); // Get the output stream
   video.play();
@@ -89,7 +89,7 @@ console.log(camera_processor.performance);
 ## Passthrough Mode
 
 ```javascript
-// Stop all analyzers and renderers and just return the camera stream back through the output stream
+// Stop all analyzers and renderers and just pass the camera stream through the output stream
 camera_processor.passthrough = true;
 ```
 

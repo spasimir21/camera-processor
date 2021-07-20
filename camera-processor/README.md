@@ -46,12 +46,12 @@ async function main() {
 
   const camera_processor = new CameraProcessor();
   camera_processor.setCameraStream(camera_stream);
+  camera_processor.start(); // You have to explicitly start it
 
   // Add some analyzer (the first argument is the name and it's very important)
   const some_analyzer = camera_processor.addAnalyzer('some_analyzer', new SomeAnalyzer());
   // Add some renderer that might or might not use data from the analyzers
   const some_renderer = camera_processor.addRenderer(new SomeRenderer());
-  camera_processor.start(); // You have to explicitly start it
 
   video.srcObject = camera_processor.getOutputStream(); // Get the output stream
   video.play();
@@ -89,7 +89,7 @@ console.log(camera_processor.performance);
 ## Passthrough Mode
 
 ```javascript
-// Stop all analyzers and renderers and just return the camera stream back through the output stream
+// Stop all analyzers and renderers and just pass the camera stream through the output stream
 camera_processor.passthrough = true;
 ```
 
@@ -111,7 +111,7 @@ console.log(camera_processor.isRunning);
 console.log(some_analyzer.isRunning);
 ```
 
-## Typescript Tips
+## Typescript Tip
 
 ```typescript
 type AnalyzerData = { some_analyzer: SomeType };
@@ -179,6 +179,6 @@ renderer.height; // Access the camera's height
 # TODO
 
 - Fix the output stream freezing when the page is hidden. (using [time-worker](https://www.npmjs.com/package/time-worker) and OffscreenCanvas)
-- Pause CameraProcessor when there are no output stream active.
+- Pause CameraProcessor when there are no output streams active.
 - Implement some kind of API for resizing CanvasSources and getting their ImageData back. (Will be useful for FrameAnalyzers and FrameRenderers)
 - Finish implementing WebGLRenderMode to allow rendering with WebGL.

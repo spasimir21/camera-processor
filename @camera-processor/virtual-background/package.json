@@ -1,0 +1,41 @@
+{
+  "name": "@camera-processor/virtual-background",
+  "version": "0.9.0",
+  "description": "Simple, Easy-to-use Background Masking Using Camera-Processor.",
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "tsc --watch",
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@tensorflow-models/body-pix": "^2.2.0",
+    "@tensorflow/tfjs": "^3.8.0",
+    "@tensorflow/tfjs-backend-cpu": "^3.8.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.8.0",
+    "camera-processor": "^0.9.0",
+    "tflite-helper": "^0.9.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
+  },
+  "keywords": [
+    "camera",
+    "processor",
+    "webcam",
+    "cam",
+    "virtual",
+    "background",
+    "video",
+    "masking"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spasimir21/camera-processor.git"
+  },
+  "homepage": "https://github.com/spasimir21/camera-processor#readme",
+  "bugs": {
+    "url": "https://github.com/spasimir21/camera-processor/issues"
+  },
+  "author": "Spasimir Pavlov",
+  "license": "MIT"
+}
