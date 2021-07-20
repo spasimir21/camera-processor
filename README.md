@@ -179,5 +179,6 @@ renderer.height; // Access the camera's height
 # TODO
 
 - Fix the output stream freezing when the page is hidden. (using [time-worker](https://www.npmjs.com/package/time-worker) and OffscreenCanvas)
+- Pause CameraProcessor when there are no output stream active.
 - Implement some kind of API for resizing CanvasSources and getting their ImageData back. (Will be useful for FrameAnalyzers and FrameRenderers)
 - Finish implementing WebGLRenderMode to allow rendering with WebGL.
