@@ -1,4 +1,4 @@
-# Camera Processor Virtual Background v0.9.0
+# Camera Processor Virtual Background v0.9.1
 
 Simple, Easy-to-use Background Masking Using Camera-Processor.
 
