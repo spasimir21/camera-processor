@@ -1,0 +1,29 @@
+{
+  "name": "camera-processor",
+  "version": "0.9.0",
+  "description": "A Simple to Use Webcam Filter Framework.",
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "tsc --watch",
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
+  },
+  "keywords": [
+    "camera",
+    "webcam",
+    "filter",
+    "framework"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spasimir21/camera-processor.git"
+  },
+  "homepage": "https://github.com/spasimir21/camera-processor#readme",
+  "bugs": {
+    "url": "https://github.com/spasimir21/camera-processor/issues"
+  },
+  "author": "Spasimir Pavlov",
+  "license": "MIT"
+}
