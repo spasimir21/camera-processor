@@ -14,14 +14,11 @@ class CameraProcessor<TAnalyzerData = any> {
   public passthrough: boolean = false;
   public isRunning: boolean = false;
 
-  constructor() {
-    this.processFrame = this.processFrame.bind(this); // For callback purposes
-  }
 
-  start(): void {
+  async start(): Promise<void> {
+    await this.cameraVideo.play();
     this.isRunning = true;
-    this.cameraVideo.play();
-    requestAnimationFrame(this.processFrame);
+    await this.processFrame();
   }
 
   stop(): void {
@@ -32,7 +29,6 @@ class CameraProcessor<TAnalyzerData = any> {
   setCameraStream(stream: MediaStream): void {
     this.cameraStream = stream;
     this.cameraVideo.srcObject = this.cameraStream;
-    this.cameraVideo.play();
 
     const stream_settings = this.cameraStream.getVideoTracks()[0].getSettings();
     this.renderer.setDimensions(stream_settings.width ?? 1, stream_settings.height ?? 1);
@@ -43,8 +39,8 @@ class CameraProcessor<TAnalyzerData = any> {
   }
 
   private async processFrame(): Promise<void> {
-    if (this.cameraStream == null) {
-      if (this.isRunning) requestAnimationFrame(this.processFrame);
+    if (!this.cameraStream) {
+      if (this.isRunning) requestAnimationFrame(_ => this.processFrame());
       return;
     }
 
@@ -59,8 +55,12 @@ class CameraProcessor<TAnalyzerData = any> {
     this.performance.frameTime.analyze = time_analyze - time_start;
     this.performance.frameTime.render = time_render - time_analyze;
     this.performance.frameTime.total = time_render - time_start;
-    this.performance.fps = Math.min(1000 / this.performance.frameTime.total, 1000);
-    if (this.isRunning) requestAnimationFrame(this.processFrame);
+
+    // Time precision of Date.now() is not up to a millisecond for security reasons, so we may end up having zero frame time.
+    // More info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now#reduced_time_precision
+    this.performance.fps = this.performance.frameTime.total > 0 ? this.performance.frameTime.total * 0.001 : 1000;
+
+    if (this.isRunning) requestAnimationFrame(_ => this.processFrame());
   }
 
   addAnalyzer<TAnalyzer extends FrameAnalyzer>(name: string, analyzer: TAnalyzer): TAnalyzer {
