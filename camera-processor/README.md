@@ -1,4 +1,4 @@
-# Camera Processor v0.9.0
+# Camera Processor v0.9.1
 
 A Simple to Use Webcam Filter Framework.
 
@@ -46,7 +46,7 @@ async function main() {
 
   const camera_processor = new CameraProcessor();
   camera_processor.setCameraStream(camera_stream);
-  camera_processor.start(); // You have to explicitly start it
+  camera_processor.start(); // You have to explicitly start it after setCameraStream
 
   // Add some analyzer (the first argument is the name and it's very important)
   const some_analyzer = camera_processor.addAnalyzer('some_analyzer', new SomeAnalyzer());

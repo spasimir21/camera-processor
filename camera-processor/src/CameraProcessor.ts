@@ -15,13 +15,14 @@ class CameraProcessor<TAnalyzerData = any> {
   public isRunning: boolean = false;
 
   constructor() {
+    this.cameraVideo.muted = true;
     this.processFrame = this.processFrame.bind(this); // For callback purposes
   }
 
-  start(): void {
+  async start(): Promise<void> {
+    await (this.cameraVideo.play() || Promise.resolve());
     this.isRunning = true;
-    this.cameraVideo.play();
-    requestAnimationFrame(this.processFrame);
+    return this.processFrame();
   }
 
   stop(): void {
@@ -32,7 +33,6 @@ class CameraProcessor<TAnalyzerData = any> {
   setCameraStream(stream: MediaStream): void {
     this.cameraStream = stream;
     this.cameraVideo.srcObject = this.cameraStream;
-    this.cameraVideo.play();
 
     const stream_settings = this.cameraStream.getVideoTracks()[0].getSettings();
     this.renderer.setDimensions(stream_settings.width ?? 1, stream_settings.height ?? 1);
@@ -59,7 +59,7 @@ class CameraProcessor<TAnalyzerData = any> {
     this.performance.frameTime.analyze = time_analyze - time_start;
     this.performance.frameTime.render = time_render - time_analyze;
     this.performance.frameTime.total = time_render - time_start;
-    this.performance.fps = Math.min(1000 / this.performance.frameTime.total, 1000);
+    this.performance.fps = this.performance.frameTime.total > 0 ? 1000 / this.performance.frameTime.total : 1000;
     if (this.isRunning) requestAnimationFrame(this.processFrame);
   }
 

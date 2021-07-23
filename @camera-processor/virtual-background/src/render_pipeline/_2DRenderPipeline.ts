@@ -9,7 +9,7 @@ class _2DRenderPipeline extends RenderPipeline {
   private maskData: ImageData = this.maskCtx.createImageData(1, 1);
   public renderSettings = { contourFilter: 'blur(4px)' };
 
-  renderMask(segmentation: Uint8Array | Float32Array, width: number, height: number): void {
+  private renderMask(segmentation: Uint8Array | Float32Array, width: number, height: number): void {
     if (this.maskCanvas.width != width || this.maskCanvas.height != height) {
       this.maskCanvas.width = width;
       this.maskCanvas.height = height;
