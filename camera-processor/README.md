@@ -1,4 +1,4 @@
-# Camera Processor v0.9.1
+# Camera Processor v0.9.2
 
 A Simple to Use Webcam Filter Framework.
 
@@ -39,25 +39,16 @@ The **Camera Processor** is the main component of this library. It combines the 
 ```javascript
 import CameraProcessor from 'camera-processor';
 
-async function main() {
-  // Get the camera stream somehow (It's best to only give the video since CameraProcessor can't handle audio)
-  const camera_stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  const video = document.querySelector('video');
+const camera_processor = new CameraProcessor();
+camera_processor.setCameraStream(camera_stream); // Set the camera stream from somewhere
+camera_processor.start(); // You have to explicitly start it after setCameraStream
 
-  const camera_processor = new CameraProcessor();
-  camera_processor.setCameraStream(camera_stream);
-  camera_processor.start(); // You have to explicitly start it after setCameraStream
+// Add some analyzer (the first argument is the name and it's very important)
+const some_analyzer = camera_processor.addAnalyzer('some_analyzer', new SomeAnalyzer());
+// Add some renderer that might or might not use data from the analyzers
+const some_renderer = camera_processor.addRenderer(new SomeRenderer());
 
-  // Add some analyzer (the first argument is the name and it's very important)
-  const some_analyzer = camera_processor.addAnalyzer('some_analyzer', new SomeAnalyzer());
-  // Add some renderer that might or might not use data from the analyzers
-  const some_renderer = camera_processor.addRenderer(new SomeRenderer());
-
-  video.srcObject = camera_processor.getOutputStream(); // Get the output stream
-  video.play();
-}
-
-window.addEventListener('DOMContentLoaded', main);
+const output_stream = camera_processor.getOutputStream(); // Get the output stream and use it
 ```
 
 ## Accessing Data From the Analyzers
@@ -120,6 +111,10 @@ type AnalyzerData = { some_analyzer: SomeType };
 const camera_processor = new CameraProcessor<AnalyzerData>();
 ```
 
+## A Note On Streams And Tracks
+
+**CameraProcessor** will automatically _pause_ (_not stop_) to save performance when there are no output tracks active. Restrain from using **stream.clone()** or **track.clone()** because the new cloned tracks can't and won't count as active.
+
 # Extending Library Functionality
 
 ## Writing Frame Analyzers
@@ -179,6 +174,5 @@ renderer.height; // Access the camera's height
 # TODO
 
 - Fix the output stream freezing when the page is hidden. (using [time-worker](https://www.npmjs.com/package/time-worker) and OffscreenCanvas)
-- Pause CameraProcessor when there are no output streams active.
 - Implement some kind of API for resizing CanvasSources and getting their ImageData back. (Will be useful for FrameAnalyzers and FrameRenderers)
 - Finish implementing WebGLRenderMode to allow rendering with WebGL.

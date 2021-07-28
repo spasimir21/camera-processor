@@ -7,6 +7,9 @@ class CameraProcessor<TAnalyzerData = any> {
   public readonly analyzer: CameraAnalyzer<TAnalyzerData> = new CameraAnalyzer();
   public readonly renderer: CameraRenderer = new CameraRenderer();
 
+  private outputTracks: Set<MediaStreamTrack> = new Set();
+  private nextAnimationFrame: number = -1;
+
   private readonly cameraVideo: HTMLVideoElement = document.createElement('video');
   public cameraStream: MediaStream;
 
@@ -22,12 +25,14 @@ class CameraProcessor<TAnalyzerData = any> {
   async start(): Promise<void> {
     await (this.cameraVideo.play() || Promise.resolve());
     this.isRunning = true;
-    return this.processFrame();
+    if (this.nextAnimationFrame == -1) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
   }
 
   stop(): void {
     this.isRunning = false;
     this.cameraVideo.pause();
+    if (this.nextAnimationFrame != -1) cancelAnimationFrame(this.nextAnimationFrame);
+    this.nextAnimationFrame = -1;
   }
 
   setCameraStream(stream: MediaStream): void {
@@ -39,12 +44,25 @@ class CameraProcessor<TAnalyzerData = any> {
   }
 
   getOutputStream(): MediaStream {
-    return this.renderer.getStream();
+    const stream = this.renderer.getStream();
+    stream.getVideoTracks().map(track => {
+      this.outputTracks.add(track);
+      // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/onended
+      // https://stackoverflow.com/questions/55953038/why-is-the-ended-event-not-firing-for-this-mediastreamtrack
+      // We want the event since the track can be ended for multiple different reasons
+      track.addEventListener('ended', () => this.outputTracks.delete(track), { once: true });
+      const trackStop = track.stop; // .stop() doesn't trigger the event, so we have to monkey patch it
+      track.stop = function () {
+        trackStop.call(this);
+        this.dispatchEvent(new Event('ended'));
+      };
+    });
+    return stream;
   }
 
   private async processFrame(): Promise<void> {
-    if (this.cameraStream == null) {
-      if (this.isRunning) requestAnimationFrame(this.processFrame);
+    if (this.cameraStream == null || this.outputTracks.size == 0) {
+      if (this.isRunning) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
       return;
     }
 
@@ -60,7 +78,7 @@ class CameraProcessor<TAnalyzerData = any> {
     this.performance.frameTime.render = time_render - time_analyze;
     this.performance.frameTime.total = time_render - time_start;
     this.performance.fps = this.performance.frameTime.total > 0 ? 1000 / this.performance.frameTime.total : 1000;
-    if (this.isRunning) requestAnimationFrame(this.processFrame);
+    if (this.isRunning) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
   }
 
   addAnalyzer<TAnalyzer extends FrameAnalyzer>(name: string, analyzer: TAnalyzer): TAnalyzer {
