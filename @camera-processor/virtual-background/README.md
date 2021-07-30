@@ -1,4 +1,4 @@
-# Camera Processor Virtual Background v0.9.7
+# Camera Processor Virtual Background v0.9.8
 
 Simple, Easy-to-use Background Masking Using Camera-Processor.
 
@@ -66,7 +66,7 @@ const segmentation_analyzer = new SegmentationAnalyzer(SEGMENTATION_BACKEND.MLKi
 // modelPath is the path where you hosted the model's .tflite file
 // modulePath is the path where you hosted tflite-helper's module files
 segmentation_analyzer.loadModel({
-  modelPath: './tflite/models/mlkit-selfie.tflite',
+  modelPath: './tflite/models/selfie_segmentation.tflite',
   modulePath: './tflite/'
 });
 

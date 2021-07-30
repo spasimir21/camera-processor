@@ -7,7 +7,7 @@ class MLKitSegmentationBackend extends SegmentationBackend {
   private net: TFLiteModel = null as any;
 
   public modelSettings = {
-    modelPath: '/mlkit-selfie.tflite',
+    modelPath: '/selfie_segmentation.tflite',
     modulePath: '/'
   };
 

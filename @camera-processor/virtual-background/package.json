@@ -1,6 +1,6 @@
 {
   "name": "@camera-processor/virtual-background",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Simple, Easy-to-use Background Masking Using Camera-Processor.",
   "main": "dist/index.js",
   "scripts": {
