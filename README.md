@@ -1,4 +1,4 @@
-# Camera Processor v0.9.2
+# Camera Processor v0.9.3
 
 A Simple to Use Webcam Filter Framework.
 
