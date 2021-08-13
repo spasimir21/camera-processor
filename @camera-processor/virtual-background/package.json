@@ -1,6 +1,6 @@
 {
   "name": "@camera-processor/virtual-background",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "Simple, Easy-to-use Background Masking Using Camera-Processor.",
   "main": "dist/index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "@tensorflow/tfjs": "^3.8.0",
     "@tensorflow/tfjs-backend-cpu": "^3.8.0",
     "@tensorflow/tfjs-backend-webgl": "^3.8.0",
-    "camera-processor": "^0.9.3",
+    "camera-processor": "^0.9.4",
     "tflite-helper": "^0.9.4"
   },
   "devDependencies": {

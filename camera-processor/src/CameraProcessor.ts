@@ -3,15 +3,23 @@ import CameraRenderer from './CameraRenderer';
 import FrameAnalyzer from './FrameAnalyzer';
 import FrameRenderer from './FrameRenderer';
 
+interface CameraProcessorPerformanceOptions {
+  everyNthFrames: number;
+  useIdle: boolean;
+}
+
 class CameraProcessor<TAnalyzerData = any> {
   public readonly analyzer: CameraAnalyzer<TAnalyzerData> = new CameraAnalyzer();
   public readonly renderer: CameraRenderer = new CameraRenderer();
 
   private outputTracks: Set<MediaStreamTrack> = new Set();
-  private nextAnimationFrame: number = -1;
+  private nextCallback: number = -1;
 
   private readonly cameraVideo: HTMLVideoElement = document.createElement('video');
-  public cameraStream: MediaStream;
+  public cameraStream: MediaStream | null;
+
+  private _performanceOptions: CameraProcessorPerformanceOptions = { everyNthFrames: 1, useIdle: false };
+  private _nthFrame: number = 0;
 
   public readonly performance = { fps: NaN, frameTime: { analyze: NaN, render: NaN, total: NaN } };
   public passthrough: boolean = false;
@@ -22,17 +30,48 @@ class CameraProcessor<TAnalyzerData = any> {
     this.processFrame = this.processFrame.bind(this); // For callback purposes
   }
 
+  freeCameraStream(destroy: boolean = false): void {
+    if (destroy && this.cameraStream != null) {
+      this.cameraStream.getTracks().forEach(track => {
+        this.cameraStream?.removeTrack(track);
+        track.stop();
+      });
+    }
+    this.cameraStream = null;
+  }
+
+  get performanceOptions(): CameraProcessorPerformanceOptions {
+    return this._performanceOptions;
+  }
+
+  setPerformanceOptions(options: Partial<CameraProcessorPerformanceOptions>) {
+    this._performanceOptions.everyNthFrames = options.everyNthFrames ?? this._performanceOptions.everyNthFrames;
+    this._performanceOptions.useIdle = options.useIdle ?? this._performanceOptions.useIdle;
+  }
+
+  schedule(): void {
+    // @ts-ignore
+    this.nextCallback = this._performanceOptions.useIdle && window.requestIdleCallback ? requestIdleCallback(this.processFrame) : requestAnimationFrame(this.processFrame);
+  }
+  
+  cancelScheduled() {
+    // Here we call both if available because we can't know which method was used when scheduling it
+    // @ts-ignore
+    if (window.cancelIdleCallback) cancelIdleCallback(this.nextCallback);
+    cancelAnimationFrame(this.nextCallback);
+    this.nextCallback = -1;
+  }
+
   async start(): Promise<void> {
     await (this.cameraVideo.play() || Promise.resolve());
     this.isRunning = true;
-    if (this.nextAnimationFrame == -1) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
+    if (this.nextCallback == -1) this.schedule();
   }
 
   stop(): void {
     this.isRunning = false;
     this.cameraVideo.pause();
-    if (this.nextAnimationFrame != -1) cancelAnimationFrame(this.nextAnimationFrame);
-    this.nextAnimationFrame = -1;
+    if (this.nextCallback != -1) this.cancelScheduled();
   }
 
   setCameraStream(stream: MediaStream): void {
@@ -61,8 +100,10 @@ class CameraProcessor<TAnalyzerData = any> {
   }
 
   private async processFrame(): Promise<void> {
-    if (this.cameraStream == null || this.outputTracks.size == 0) {
-      if (this.isRunning) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
+    this._nthFrame = this._nthFrame % this._performanceOptions.everyNthFrames;
+    if (this._nthFrame != 0 || this.cameraStream == null || this.outputTracks.size == 0) {
+      if (this.isRunning) this.schedule();
+      this._nthFrame++;
       return;
     }
 
@@ -78,7 +119,8 @@ class CameraProcessor<TAnalyzerData = any> {
     this.performance.frameTime.render = time_render - time_analyze;
     this.performance.frameTime.total = time_render - time_start;
     this.performance.fps = this.performance.frameTime.total > 0 ? 1000 / this.performance.frameTime.total : 1000;
-    if (this.isRunning) this.nextAnimationFrame = requestAnimationFrame(this.processFrame);
+    if (this.isRunning) this.schedule();
+    this._nthFrame++;
   }
 
   addAnalyzer<TAnalyzer extends FrameAnalyzer>(name: string, analyzer: TAnalyzer): TAnalyzer {

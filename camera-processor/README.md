@@ -1,4 +1,4 @@
-# Camera Processor v0.9.3
+# Camera Processor v0.9.4
 
 A Simple to Use Webcam Filter Framework.
 
@@ -77,6 +77,15 @@ console.log(camera_processor.performance);
 //   }
 ```
 
+## Performance Options
+```javascript
+camera_processor.setPerformanceOptions({
+  useIdle: true, // use requestIdleCallback if available (false by default)
+  everyNthFrames: 2 // Run every n frames and skip the others (1 by default - run every frame)
+});
+// *requestIdleCallback - https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+```
+
 ## Passthrough Mode
 
 ```javascript
@@ -102,6 +111,16 @@ console.log(camera_processor.isRunning);
 console.log(some_analyzer.isRunning);
 ```
 
+## Freeing The Camera Stream
+```javascript
+// Free the camera stream when you know you won't use it again
+// This function loses the reference to the stream.
+// It takes in one parameter - destroy (false by default)
+// If destroy is true, the camera stream and all it's tracks
+// will be stopped and removed.
+camera_processor.freeCameraStream(true);
+```
+
 ## Typescript Tip
 
 ```typescript
@@ -114,6 +133,10 @@ const camera_processor = new CameraProcessor<AnalyzerData>();
 ## A Note On Streams And Tracks
 
 **CameraProcessor** will automatically _pause_ (_not stop_) to save performance when there are no output tracks active. Restrain from using **stream.clone()** or **track.clone()** because the new cloned tracks can't and won't count as active.
+
+## A Note On Browser Support
+
+**Safari** is currently not supported.
 
 # Extending Library Functionality
 
