@@ -10,7 +10,7 @@ enum RENDER_MODE {
 }
 
 class CameraRenderer {
-  private readonly renderModes: { [key: string]: RenderMode } = {};
+  protected readonly renderModes: { [key: string]: RenderMode } = {};
   public readonly renderers: FrameRenderer[] = [];
 
   public canvas: HTMLCanvasElement;
@@ -53,12 +53,7 @@ class CameraRenderer {
     this.ctx = this.renderMode.ctx;
   }
 
-  render(
-    passthrough: boolean,
-    analyzer_data: any,
-    camera_video: HTMLVideoElement,
-    camera_processor: CameraProcessor
-  ): void {
+  render(passthrough: boolean, analyzer_data: any, camera_video: HTMLVideoElement, camera_processor: CameraProcessor): void {
     this.use(RENDER_MODE._2D, false);
     this.ctx.drawImage(camera_video, 0, 0, this.width, this.height);
 

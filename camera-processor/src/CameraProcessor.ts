@@ -2,24 +2,34 @@ import CameraAnalyzer from './CameraAnalyzer';
 import CameraRenderer from './CameraRenderer';
 import FrameAnalyzer from './FrameAnalyzer';
 import FrameRenderer from './FrameRenderer';
+import TimeWorker from 'time-worker';
+
+const TIME_WORKER_INSTANCE = new TimeWorker();
 
 interface CameraProcessorPerformanceOptions {
-  everyNthFrames: number;
+  useTimeWorker: boolean;
+  everyNFrames: number;
   useIdle: boolean;
+  idealFPS: number;
 }
 
 class CameraProcessor<TAnalyzerData = any> {
   public readonly analyzer: CameraAnalyzer<TAnalyzerData> = new CameraAnalyzer();
   public readonly renderer: CameraRenderer = new CameraRenderer();
 
-  private outputTracks: Set<MediaStreamTrack> = new Set();
-  private nextCallback: number = -1;
+  protected outputTracks: Set<MediaStreamTrack> = new Set();
+  protected nextCallback: number | string | null = null;
 
-  private readonly cameraVideo: HTMLVideoElement = document.createElement('video');
+  protected readonly cameraVideo: HTMLVideoElement = document.createElement('video');
   public cameraStream: MediaStream | null;
 
-  private _performanceOptions: CameraProcessorPerformanceOptions = { everyNthFrames: 1, useIdle: false };
-  private _nthFrame: number = 0;
+  protected _performanceOptions: CameraProcessorPerformanceOptions = {
+    everyNFrames: 1,
+    useIdle: false,
+    idealFPS: 30,
+    useTimeWorker: true
+  };
+  protected _nthFrame: number = 0;
 
   public readonly performance = { fps: NaN, frameTime: { analyze: NaN, render: NaN, total: NaN } };
   public passthrough: boolean = false;
@@ -45,33 +55,46 @@ class CameraProcessor<TAnalyzerData = any> {
   }
 
   setPerformanceOptions(options: Partial<CameraProcessorPerformanceOptions>) {
-    this._performanceOptions.everyNthFrames = options.everyNthFrames ?? this._performanceOptions.everyNthFrames;
+    this._performanceOptions.useTimeWorker = options.useTimeWorker ?? this._performanceOptions.useTimeWorker;
+    this._performanceOptions.everyNFrames = options.everyNFrames ?? this._performanceOptions.everyNFrames;
+    this._performanceOptions.idealFPS = options.idealFPS ?? this._performanceOptions.idealFPS;
     this._performanceOptions.useIdle = options.useIdle ?? this._performanceOptions.useIdle;
   }
 
   schedule(): void {
-    // @ts-ignore
-    this.nextCallback = this._performanceOptions.useIdle && window.requestIdleCallback ? requestIdleCallback(this.processFrame) : requestAnimationFrame(this.processFrame);
+    if (this._performanceOptions.useTimeWorker) {
+      this.nextCallback = TIME_WORKER_INSTANCE.setTimeout(this.processFrame, 1000 / this._performanceOptions.idealFPS);
+      // @ts-ignore
+    } else if (this._performanceOptions.useIdle && window.requestIdleCallback) {
+      // @ts-ignore
+      requestIdleCallback(this.processFrame);
+    } else {
+      requestAnimationFrame(this.processFrame);
+    }
   }
-  
+
   cancelScheduled() {
-    // Here we call both if available because we can't know which method was used when scheduling it
-    // @ts-ignore
-    if (window.cancelIdleCallback) cancelIdleCallback(this.nextCallback);
-    cancelAnimationFrame(this.nextCallback);
-    this.nextCallback = -1;
+    if (this.nextCallback == null) return;
+    if (typeof this.nextCallback === 'string') {
+      TIME_WORKER_INSTANCE.clearTimeout(this.nextCallback);
+    } else {
+      // @ts-ignore
+      if (window.cancelIdleCallback) cancelIdleCallback(this.nextCallback);
+      cancelAnimationFrame(this.nextCallback);
+    }
+    this.nextCallback = null;
   }
 
   async start(): Promise<void> {
     await (this.cameraVideo.play() || Promise.resolve());
     this.isRunning = true;
-    if (this.nextCallback == -1) this.schedule();
+    if (this.nextCallback == null) this.schedule();
   }
 
   stop(): void {
     this.isRunning = false;
     this.cameraVideo.pause();
-    if (this.nextCallback != -1) this.cancelScheduled();
+    if (this.nextCallback != null) this.cancelScheduled();
   }
 
   setCameraStream(stream: MediaStream): void {
@@ -99,8 +122,8 @@ class CameraProcessor<TAnalyzerData = any> {
     return stream;
   }
 
-  private async processFrame(): Promise<void> {
-    this._nthFrame = this._nthFrame % this._performanceOptions.everyNthFrames;
+  protected async processFrame(): Promise<void> {
+    this._nthFrame = this._nthFrame % this._performanceOptions.everyNFrames;
     if (this._nthFrame != 0 || this.cameraStream == null || this.outputTracks.size == 0) {
       if (this.isRunning) this.schedule();
       this._nthFrame++;
@@ -140,4 +163,5 @@ class CameraProcessor<TAnalyzerData = any> {
   }
 }
 
+export { CameraProcessorPerformanceOptions };
 export default CameraProcessor;

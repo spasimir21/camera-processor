@@ -1,6 +1,6 @@
 {
   "name": "camera-processor",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "A Simple to Use Webcam Filter Framework.",
   "main": "dist/index.js",
   "scripts": {
@@ -25,5 +25,8 @@
     "url": "https://github.com/spasimir21/camera-processor/issues"
   },
   "author": "Spasimir Pavlov",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "time-worker": "^1.0.4"
+  }
 }

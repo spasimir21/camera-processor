@@ -1,4 +1,4 @@
-# Camera Processor v0.9.4
+# Camera Processor v0.9.5
 
 A Simple to Use Webcam Filter Framework.
 
@@ -78,10 +78,13 @@ console.log(camera_processor.performance);
 ```
 
 ## Performance Options
+
 ```javascript
 camera_processor.setPerformanceOptions({
-  useIdle: true, // use requestIdleCallback if available (false by default)
-  everyNthFrames: 2 // Run every n frames and skip the others (1 by default - run every frame)
+  useTimeWorker: true, // Schedule callbacks in a worker to stop camera-processor from being throttled after minimizing tab
+  useIdle: false, // use requestIdleCallback if available (false by default)
+  everyNFrames: 2, // Run every n frames and skip the others (1 by default - run every frame)
+  idealFPS: 30 // Your ideal FPS (Only works with TimeWorker)
 });
 // *requestIdleCallback - https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
 ```
@@ -112,6 +115,7 @@ console.log(some_analyzer.isRunning);
 ```
 
 ## Freeing The Camera Stream
+
 ```javascript
 // Free the camera stream when you know you won't use it again
 // This function loses the reference to the stream.
@@ -196,6 +200,6 @@ renderer.height; // Access the camera's height
 
 # TODO
 
-- Fix the output stream freezing when the page is hidden. (using [time-worker](https://www.npmjs.com/package/time-worker) and OffscreenCanvas)
 - Implement some kind of API for resizing CanvasSources and getting their ImageData back. (Will be useful for FrameAnalyzers and FrameRenderers)
 - Finish implementing WebGLRenderMode to allow rendering with WebGL.
+- _(Possibly finished)_ Fix the output stream freezing when the page is hidden. (using [time-worker](https://www.npmjs.com/package/time-worker) and OffscreenCanvas)
